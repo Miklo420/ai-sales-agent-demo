@@ -1,0 +1,76 @@
+@import "tailwindcss";
+
+/* Class-based dark mode (toggled from the header, defaults to the OS preference). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@theme {
+  --animate-sync-pop: sync-pop 2.6s ease-out forwards;
+  --animate-ring-flash: ring-flash 1.6s ease-out forwards;
+  --animate-field-flash: field-flash 1.8s ease-out;
+  --animate-row-in: row-in 0.7s ease-out;
+  --animate-msg-in: msg-in 0.25s ease-out;
+  --animate-typing: typing 1.2s infinite ease-in-out;
+
+  @keyframes sync-pop {
+    0% { opacity: 0; transform: translateY(-4px) scale(0.95); }
+    8% { opacity: 1; transform: translateY(0) scale(1); }
+    80% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  @keyframes ring-flash {
+    0% { box-shadow: 0 0 0 0 rgb(16 185 129 / 0); opacity: 1; }
+    25% { box-shadow: 0 0 0 4px rgb(16 185 129 / 0.35); }
+    100% { box-shadow: 0 0 0 0 rgb(16 185 129 / 0); opacity: 0; }
+  }
+  @keyframes field-flash {
+    0% { background-color: rgb(16 185 129 / 0.22); }
+    100% { background-color: transparent; }
+  }
+  @keyframes row-in {
+    0% { opacity: 0; transform: translateY(-6px); background-color: rgb(16 185 129 / 0.18); }
+    40% { opacity: 1; transform: translateY(0); }
+    100% { background-color: transparent; }
+  }
+  @keyframes msg-in {
+    0% { opacity: 0; transform: translateY(6px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes typing {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-3px); opacity: 1; }
+  }
+}
+
+:root {
+  color-scheme: light;
+}
+.dark {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-zinc-50 text-zinc-900 dark:bg-[#0a0c10] dark:text-zinc-100;
+}
+
+/* WhatsApp-like subtle chat wallpaper */
+.chat-wallpaper {
+  background-color: #efeae2;
+  background-image: radial-gradient(rgb(0 0 0 / 0.045) 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+.dark .chat-wallpaper {
+  background-color: #0b141a;
+  background-image: radial-gradient(rgb(255 255 255 / 0.035) 1px, transparent 1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
