@@ -1,10 +1,12 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport } from "ai";
 import { Bot, LayoutDashboard, MessageCircle, RotateCcw, UserPlus } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { slotKey } from "@/lib/availability";
 import { deriveSession, hasLeadData } from "@/lib/crm";
+import { MAX_HISTORY } from "@/lib/limits";
 import type { Appointment, LeadProfile, LeadUIMessage } from "@/lib/types";
 import { ChatPanel } from "./chat-panel";
 import { CrmPanel } from "./crm-panel";
@@ -40,6 +42,19 @@ function writeStorage(key: string, value: unknown) {
   }
 }
 
+/** Only the latest messages go to the API (the lead card carries older context). */
+function trimHistory(messages: LeadUIMessage[]): LeadUIMessage[] {
+  const recent = messages.slice(-MAX_HISTORY);
+  while (recent.length > 0 && recent[0].role !== "user") recent.shift();
+  return recent;
+}
+
+const transport = new DefaultChatTransport<LeadUIMessage>({
+  prepareSendMessagesRequest: ({ messages, body }) => ({
+    body: { ...body, messages: trimHistory(messages) },
+  }),
+});
+
 function clientContext() {
   return {
     clientDate: new Date().toLocaleDateString("en-CA"), // YYYY-MM-DD in local time
@@ -60,7 +75,7 @@ export default function Workspace() {
   const sentAtRef = useRef<number | null>(null);
 
   const { messages, sendMessage, status, error, setMessages, stop, regenerate, clearError } =
-    useChat<LeadUIMessage>({ messages: initialMessages });
+    useChat<LeadUIMessage>({ messages: initialMessages, transport });
 
   const session = useMemo(() => deriveSession(messages), [messages]);
   const appointments = useMemo(
@@ -94,32 +109,30 @@ export default function Workspace() {
     setLatencies((prev) => [...prev.slice(-19), Math.round(elapsed)]);
   }, [messages]);
 
+  const requestBody = useCallback(() => {
+    return {
+      ...clientContext(),
+      bookedSlots: appointments.map((a) => slotKey(a.date, a.time)),
+      lead: { ...session.lead, updatedAt: undefined }, // server schema doesn't need the timestamp
+    };
+  }, [appointments, session.lead]);
+
   const send = useCallback(
     (text: string) => {
       const trimmed = text.trim();
       if (!trimmed || isBusy) return;
       clearError();
       sentAtRef.current = performance.now();
-      void sendMessage(
-        { text: trimmed },
-        {
-          body: {
-            ...clientContext(),
-            bookedSlots: appointments.map((a) => slotKey(a.date, a.time)),
-          },
-        },
-      );
+      void sendMessage({ text: trimmed }, { body: requestBody() });
     },
-    [appointments, clearError, isBusy, sendMessage],
+    [clearError, isBusy, requestBody, sendMessage],
   );
 
   const retry = useCallback(() => {
     clearError();
     sentAtRef.current = performance.now();
-    void regenerate({
-      body: { ...clientContext(), bookedSlots: appointments.map((a) => slotKey(a.date, a.time)) },
-    });
-  }, [appointments, clearError, regenerate]);
+    void regenerate({ body: requestBody() });
+  }, [clearError, regenerate, requestBody]);
 
   const newLead = useCallback(() => {
     stop();

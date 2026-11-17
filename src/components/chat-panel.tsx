@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 import { formatDateLabel } from "@/lib/availability";
+import { MAX_USER_CHARS } from "@/lib/limits";
 import { AGENCY_NAME } from "@/lib/prompt";
 import type { LeadUIMessage } from "@/lib/types";
 
@@ -214,9 +215,17 @@ export function ChatPanel({ messages, status, error, onSend, onRetry, onStop }: 
             onChange={(e) => setInput(e.target.value)}
             placeholder="Escribe un mensaje como si fueras un cliente…"
             aria-label="Mensaje"
-            maxLength={1000}
+            maxLength={MAX_USER_CHARS}
             className="h-11 min-w-0 flex-1 rounded-full border border-zinc-200 bg-white px-4 text-sm outline-none transition placeholder:text-zinc-400 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10 dark:border-zinc-700 dark:bg-zinc-950 dark:placeholder:text-zinc-500"
           />
+          {input.length > MAX_USER_CHARS - 100 && (
+            <span
+              className={`shrink-0 text-xs tabular-nums ${input.length >= MAX_USER_CHARS ? "text-red-500" : "text-zinc-400"}`}
+              aria-live="polite"
+            >
+              {input.length}/{MAX_USER_CHARS}
+            </span>
+          )}
           {isBusy ? (
             <button
               type="button"
