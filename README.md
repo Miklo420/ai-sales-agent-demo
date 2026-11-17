@@ -34,7 +34,7 @@ cp .env.example .env.local   # añade tu AI_GATEWAY_API_KEY
 npm run dev
 ```
 
-Obtén la API key en el dashboard de Vercel → AI Gateway. Opcional: `AI_MODEL` para cambiar de modelo (por defecto `anthropic/claude-haiku-5.5`, elegido por latencia).
+Obtén la API key en el dashboard de Vercel → AI Gateway. Opcional: `AI_MODEL` para cambiar de modelo (por defecto `openai/gpt-4.1-mini`, elegido por latencia).
 
 ## Despliegue en Vercel
 

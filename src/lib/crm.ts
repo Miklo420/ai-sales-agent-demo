@@ -45,7 +45,15 @@ export function deriveSession(messages: LeadUIMessage[]): SessionState {
         case "tool-bookAppointment": {
           if (part.state === "output-available") {
             if (part.output.status === "confirmed") {
-              appointments.push(part.output.appointment);
+              const appt = part.output.appointment;
+              appointments.push(appt);
+              // Business rule: a lead with a booked call is hot, regardless of what the model sent.
+              lead = {
+                ...lead,
+                name: lead.name ?? appt.leadName,
+                company: lead.company ?? appt.company,
+                interestLevel: "caliente",
+              };
               events.push({ id: part.toolCallId, tool: "bookAppointment", fields: [] });
             }
           } else if (part.state === "input-streaming" || part.state === "input-available") {

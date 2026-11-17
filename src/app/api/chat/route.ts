@@ -21,7 +21,8 @@ import type { LeadProfile, LeadUIMessage } from "@/lib/types";
 
 // Server-only configuration. Credentials (AI_GATEWAY_API_KEY or Vercel OIDC)
 // are read by the AI Gateway provider on the server and never reach the client.
-const MODEL = process.env.AI_MODEL ?? "anthropic/claude-haiku-5.5";
+// Default chosen for: fast non-reasoning model, reliable tool calling, available on the AI Gateway free tier.
+const MODEL = process.env.AI_MODEL ?? "openai/gpt-4.1-mini";
 
 const MAX_ASSISTANT_TEXT_CHARS = 4_000;
 const MAX_OUTPUT_TOKENS = 400;
